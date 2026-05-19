@@ -1,0 +1,5 @@
+surya-ocr>=0.4.0
+pymupdf>=1.23.0      # PDF → 이미지 (fitz), poppler 불필요
+Pillow>=10.0.0
+pdf2image>=1.16.3    # pymupdf 없을 때 fallback (poppler 필요)
+tqdm>=4.66.0
