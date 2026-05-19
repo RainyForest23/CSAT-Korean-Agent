@@ -5,10 +5,20 @@
 Surya 기반 오픈소스 OCR + 레이아웃 분석.
 PDF 또는 이미지 폴더를 입력받아 페이지별 텍스트 JSON을 출력.
 
+스캔본 PDF는 data/pdf/ 에 저장 후 실행.
+
 Usage:
-    python run_ocr.py input.pdf --output data/ocr/
-    python run_ocr.py input_dir/ --output data/ocr/ --ext jpg
-    python run_ocr.py input.pdf --output data/ocr/ --pages 1-10
+    # data/pdf/ 의 PDF 전체 일괄 처리 (기본)
+    python run_ocr.py
+
+    # 단일 PDF
+    python run_ocr.py ../../data/pdf/강민철_문학.pdf
+
+    # 페이지 범위 지정
+    python run_ocr.py ../../data/pdf/강민철_문학.pdf --pages 1-50
+
+    # 이미지 디렉토리 (스캔 이미지)
+    python run_ocr.py scan_images/ --ext png
 """
 
 import os
@@ -36,19 +46,33 @@ def parse_page_range(s: Optional[str], total: int) -> List[int]:
     return [i for i in result if 0 <= i < total]
 
 
-def run(input_path: str, output_dir: str, pages: Optional[str] = None, ext: str = "pdf"):
+PDF_DIR = Path(__file__).resolve().parents[2] / "data" / "pdf"
+
+
+def run(input_path: str, output_dir: str, pages: Optional[str] = None, ext: str = "jpg"):
     input_path = Path(input_path)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. 이미지 수집
-    if input_path.is_dir():
-        image_paths = sorted(input_path.glob(f"*.{ext}"))
-        print(f"이미지 {len(image_paths)}장 발견: {input_path}")
-    elif input_path.suffix.lower() == ".pdf":
+    if input_path.suffix.lower() == ".pdf":
+        # 단일 PDF
         print(f"PDF → 이미지 변환: {input_path}")
-        image_paths = pdf_to_images(input_path, output_dir / "images")
+        image_paths = pdf_to_images(input_path, output_dir / "images" / input_path.stem)
         print(f"변환 완료: {len(image_paths)}페이지")
+    elif input_path.is_dir() and any(input_path.glob("*.pdf")):
+        # PDF 디렉토리: 각 PDF를 순서대로 처리
+        pdf_files = sorted(input_path.glob("*.pdf"))
+        print(f"PDF {len(pdf_files)}개 발견: {input_path}")
+        for pdf in pdf_files:
+            run(str(pdf), output_dir, pages=pages)
+        return
+    elif input_path.is_dir():
+        # 이미지 디렉토리 (스캔 이미지)
+        image_paths = sorted(input_path.glob(f"*.{ext}"))
+        if not image_paths:
+            image_paths = sorted(input_path.glob("*.png")) + sorted(input_path.glob("*.jpg"))
+        print(f"이미지 {len(image_paths)}장 발견: {input_path}")
     else:
         print(f"Error: 지원하지 않는 형식 ({input_path.suffix}). PDF 또는 이미지 디렉토리를 입력하세요.")
         sys.exit(1)
@@ -96,8 +120,11 @@ def run(input_path: str, output_dir: str, pages: Optional[str] = None, ext: str 
 
 def main():
     parser = argparse.ArgumentParser(description="교재 스캔본 OCR")
-    parser.add_argument("input", help="PDF 파일 또는 이미지 디렉토리")
-    parser.add_argument("--output", default="../../data/ocr", help="출력 디렉토리 (기본: data/ocr/)")
+    parser.add_argument(
+        "input", nargs="?", default=str(PDF_DIR),
+        help=f"PDF 파일 또는 디렉토리 (기본: data/pdf/)"
+    )
+    parser.add_argument("--output", default=str(PDF_DIR.parent / "ocr"), help="출력 디렉토리 (기본: data/ocr/)")
     parser.add_argument("--pages", help="처리할 페이지 범위 (예: 1-10,15,20-25)")
     parser.add_argument("--ext", default="jpg", help="이미지 디렉토리 입력 시 확장자 (기본: jpg)")
     args = parser.parse_args()

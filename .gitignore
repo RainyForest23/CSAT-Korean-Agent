@@ -1,4 +1,5 @@
 # 데이터 (용량 큰 파일은 Git LFS 또는 제외)
+data/pdf/
 data/raw/
 data/ocr/
 data/structured/
