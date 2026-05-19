@@ -1,0 +1,30 @@
+# 데이터 (용량 큰 파일은 Git LFS 또는 제외)
+data/raw/
+data/ocr/
+data/structured/
+data/matched/
+data/training/
+
+# 모델 가중치
+*.pt
+*.bin
+*.safetensors
+models/checkpoints/
+
+# 벡터 DB
+vector_db/*.index
+vector_db/*.pkl
+
+# 실험 로그
+experiments/mlruns/
+experiments/wandb/
+
+# 환경
+.env
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+dist/
+.venv/
+venv/
