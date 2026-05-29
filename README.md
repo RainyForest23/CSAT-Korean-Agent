@@ -68,11 +68,25 @@
 └── serving/                서빙 인프라
 ```
 
+## 데이터 파이프라인
+
+```
+data/pdf/          스캔본 PDF 원본 (gitignore)
+    ↓ [01_parse]   opendataloader-pdf → Markdown 변환
+data/markdown/     지식베이스 — 헤딩/표/리스트 구조 보존 (gitignore)
+    ↓ [02_structure] EXAONE으로 (지문/문제/해설) 추출
+data/structured/   학습용 JSON (gitignore)
+    ↓ [03_match]   기출 지문 DB와 매칭
+data/matched/      매칭 완료 데이터 (gitignore)
+    ↓ [04_qa]      품질 검증
+data/training/     최종 학습 데이터 (gitignore)
+```
+
 ## 개발 단계
 
 | Phase | 내용 | 상태 |
 |-------|------|------|
-| 1 | 데이터 파이프라인 (OCR → 구조화 → 매칭) | 🔲 |
+| 1 | 데이터 파이프라인 (PDF → Markdown → 구조화 → 매칭) | 🔲 |
 | 2 | 평가 파이프라인 설계 | 🔲 |
 | 3 | RAG MVP (해설 검색 + 생성) | 🔲 |
 | 4 | Prompt Harness 설계 | 🔲 |
@@ -87,4 +101,4 @@
 - **Orchestration**: LangGraph
 - **Vector DB**: FAISS
 - **실험 추적**: MLflow
-- **OCR**: Naver Clova OCR
+- **PDF 파싱**: opendataloader-pdf (벤치마크 1위, 스캔본 OCR 포함)
